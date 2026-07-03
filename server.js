@@ -2,6 +2,7 @@
 import 'dotenv/config';
 import express from 'express';
 import compression from 'compression';
+import crypto from 'crypto';
 import cookieParser from 'cookie-parser';
 import { WebSocketServer } from 'ws';
 import http from 'http';
@@ -22,6 +23,9 @@ const POLL_INTERVAL = 1000; // 1 second
 const SERVER_PORT = process.env.PORT || 3000;
 const APP_PASSWORD = process.env.APP_PASSWORD || 'antigravity';
 const AUTH_COOKIE_NAME = 'ag_auth_token';
+
+// Generate a random session secret once on startup for fallback use
+const GENERATED_SESSION_SECRET = crypto.randomBytes(32).toString('hex');
 
 // Security warning for default credentials
 if (APP_PASSWORD === 'antigravity') {
@@ -1732,11 +1736,11 @@ async function createServer() {
     app.use(express.json());
 
     // Use a secure session secret from .env if available
-    const sessionSecret = process.env.SESSION_SECRET || 'antigravity_secret_key_1337';
+    const sessionSecret = process.env.SESSION_SECRET || GENERATED_SESSION_SECRET;
 
-    if (sessionSecret === 'antigravity_secret_key_1337') {
-        console.warn('\n\x1b[33m%s\x1b[0m', '⚠️  SECURITY WARNING: Using default SESSION_SECRET ("antigravity_secret_key_1337").');
-        console.warn('\x1b[33m%s\x1b[0m', '   Set a strong SESSION_SECRET in your .env file for production use.\n');
+    if (sessionSecret === GENERATED_SESSION_SECRET) {
+        console.warn('\n\x1b[33m%s\x1b[0m', '⚠️  SECURITY WARNING: Using randomly generated SESSION_SECRET fallback.');
+        console.warn('\x1b[33m%s\x1b[0m', '   Set a strong SESSION_SECRET in your .env file for production use so sessions persist across restarts.\n');
     }
     app.use(cookieParser(sessionSecret));
 
@@ -2143,11 +2147,7 @@ async function createServer() {
         if (isLocalRequest(req)) {
             isAuthenticated = true;
         } else if (signedToken) {
-            const sessionSecret = process.env.SESSION_SECRET || 'antigravity_secret_key_1337';
-
-            if (sessionSecret === 'antigravity_secret_key_1337') {
-                // Warning already printed on startup, but we check here for token verification
-            }
+            const sessionSecret = process.env.SESSION_SECRET || GENERATED_SESSION_SECRET;
 
             const token = cookieParser.signedCookie(signedToken, sessionSecret);
             if (token === AUTH_TOKEN) {
