@@ -178,6 +178,18 @@
         input.onkeypress = (e) => {
             if (e.key === 'Enter') doLogin();
         };
+
+        // Handle Magic Link Auto-Login
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#key=')) {
+                const key = hash.substring(5); // Remove '#key='
+                input.value = key;
+                // Remove the fragment so it doesn't linger in URL
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+                doLogin();
+            }
+        });
     </script>
 </body>
 

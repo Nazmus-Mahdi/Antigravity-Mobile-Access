@@ -1759,17 +1759,6 @@ async function createServer() {
             return next();
         }
 
-        // Magic Link / QR Code Auto-Login
-        if (req.query.key === APP_PASSWORD) {
-            res.cookie(AUTH_COOKIE_NAME, AUTH_TOKEN, {
-                httpOnly: true,
-                signed: true,
-                maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
-            });
-            // Remove the key from the URL by redirecting to the base path
-            return res.redirect('/');
-        }
-
         const token = req.signedCookies[AUTH_COOKIE_NAME];
         if (token === AUTH_TOKEN) {
             return next();

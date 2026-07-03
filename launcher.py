@@ -305,7 +305,7 @@ def main():
                 public_url = tunnel.public_url
             
             # Magic URL with password
-            final_url = f"{public_url}?key={passcode}"
+            final_url = f"{public_url}/login.html#key={passcode}"
             
             print("\n" + "="*50)
             print(f"   [WEB] GLOBAL WEB ACCESS ({provider.upper()})")
