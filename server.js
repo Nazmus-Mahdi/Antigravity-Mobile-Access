@@ -41,30 +41,37 @@ let lastSnapshotHash = null;
 // Kill any existing process on the server port (prevents EADDRINUSE)
 function killPortProcess(port) {
     try {
+        // Validate port is strictly numeric to prevent command injection
+        const portStr = String(port).trim();
+        if (!/^\d+$/.test(portStr)) {
+            return Promise.resolve();
+        }
+
         if (process.platform === 'win32') {
             // Windows: Find PID using netstat and kill it
-            const result = execSync(`netstat -ano | findstr :${port} | findstr LISTENING`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+            const result = execSync(`netstat -ano | findstr :${portStr} | findstr LISTENING`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
             const lines = result.trim().split('\n');
             const pids = new Set();
             for (const line of lines) {
                 const parts = line.trim().split(/\s+/);
                 const pid = parts[parts.length - 1];
-                if (pid && pid !== '0') pids.add(pid);
+                if (pid && pid !== '0' && /^\d+$/.test(pid)) pids.add(pid);
             }
             for (const pid of pids) {
                 try {
                     execSync(`taskkill /PID ${pid} /F`, { stdio: 'pipe' });
-                    console.log(`⚠️  Killed existing process on port ${port} (PID: ${pid})`);
+                    console.log(`⚠️  Killed existing process on port ${portStr} (PID: ${pid})`);
                 } catch (e) { /* Process may have already exited */ }
             }
         } else {
             // Linux/macOS: Use lsof and kill
-            const result = execSync(`lsof -ti:${port}`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+            const result = execSync(`lsof -ti:${portStr}`, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
             const pids = result.trim().split('\n').filter(p => p);
             for (const pid of pids) {
+                if (!/^\d+$/.test(pid.trim())) continue;
                 try {
-                    execSync(`kill -9 ${pid}`, { stdio: 'pipe' });
-                    console.log(`⚠️  Killed existing process on port ${port} (PID: ${pid})`);
+                    execSync(`kill -9 ${pid.trim()}`, { stdio: 'pipe' });
+                    console.log(`⚠️  Killed existing process on port ${portStr} (PID: ${pid.trim()})`);
                 } catch (e) { /* Process may have already exited */ }
             }
         }
