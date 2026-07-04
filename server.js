@@ -232,20 +232,26 @@ async function captureSnapshot(cdp) {
         // Mark fixed/absolute elements in the original DOM before cloning
         // This is the only way to reliably catch CSS-class-based positioning
         const candidates = cascade.querySelectorAll('*');
+        const elementsToModify = [];
+
+        // Phase 1: Read styles (avoids layout thrashing by batching reads)
         candidates.forEach(el => {
             try {
                 const pos = window.getComputedStyle(el).position;
                 if (pos === 'fixed' || pos === 'absolute') {
-                    el.setAttribute('data-ag-rem', 'true');
+                    elementsToModify.push(el);
                 }
             } catch(e) {}
         });
+
+        // Phase 2: Mutate DOM
+        elementsToModify.forEach(el => el.setAttribute('data-ag-rem', 'true'));
 
         // Clone cascade to modify it without affecting the original
         const clone = cascade.cloneNode(true);
         
         // Clean up markers from the original DOM immediately after cloning
-        candidates.forEach(el => el.removeAttribute('data-ag-rem'));
+        elementsToModify.forEach(el => el.removeAttribute('data-ag-rem'));
         
         // Aggressively remove the entire interaction/input/review area
         try {
