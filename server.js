@@ -619,7 +619,7 @@ async function setMode(cdp, mode) {
             if (!visibleDialog) return { error: 'Dropdown not opened or options not visible' };
 
             // 5. Click the option
-            const allDialogEls = Array.from(visibleDialog.querySelectorAll('*'));
+            const allDialogEls = Array.from(visibleDialog.querySelectorAll('button, span, div, p, a, li, option'));
             const target = allDialogEls.find(el => 
                 el.children.length === 0 && el.textContent.trim() === '${mode}'
             );
