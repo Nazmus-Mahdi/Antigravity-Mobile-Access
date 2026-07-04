@@ -997,14 +997,17 @@ async function startNewChat(cdp) {
             });
             
             // Filter only top buttons (toolbar area)
-            const topPlusButtons = plusButtons.filter(btn => {
+            const topPlusButtons = plusButtons.reduce((acc, btn) => {
                 const rect = btn.getBoundingClientRect();
-                return rect.top < 200;
-            });
+                if (rect.top < 200) {
+                    acc.push({ btn, top: rect.top });
+                }
+                return acc;
+            }, []);
 
             if (topPlusButtons.length > 0) {
-                 topPlusButtons.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
-                 topPlusButtons[0].click();
+                 topPlusButtons.sort((a, b) => a.top - b.top);
+                 topPlusButtons[0].btn.click();
                  return { success: true, method: 'filtered_top_plus', count: topPlusButtons.length };
             }
             
@@ -1269,11 +1272,14 @@ async function selectChat(cdp, chatTitle) {
                 
                 // Try position strategy (second button near new chat)
                 if (!historyBtn) {
-                    const topButtons = allButtons.filter(btn => {
-                        if (btn.offsetParent === null) return false;
+                    const topButtons = allButtons.reduce((acc, btn) => {
+                        if (btn.offsetParent === null) return acc;
                         const rect = btn.getBoundingClientRect();
-                        return rect.top < 100 && rect.top > 0;
-                    }).sort((a, b) => a.getBoundingClientRect().left - b.getBoundingClientRect().left);
+                        if (rect.top < 100 && rect.top > 0) {
+                            acc.push({ btn, left: rect.left });
+                        }
+                        return acc;
+                    }, []).sort((a, b) => a.left - b.left).map(item => item.btn);
                     
                     if (topButtons.length >= 2) historyBtn = topButtons[1];
                 }
