@@ -872,17 +872,40 @@ async function setModel(cdp, modelName) {
                     return KNOWN_KEYWORDS.some(k => txt.includes(k));
                 });
 
+                // Pass 1: Fast check for button tags without triggering layout recalculation
                 for (const el of textNodes) {
                     let current = el;
                     for (let i = 0; i < 5; i++) {
                         if (!current) break;
-                        if (current.tagName === 'BUTTON' || window.getComputedStyle(current).cursor === 'pointer') {
+                        if (current.tagName === 'BUTTON') {
                             modelBtn = current;
                             break;
                         }
                         current = current.parentElement;
                     }
                     if (modelBtn) break;
+                }
+
+                // Pass 2: Slower check for computed styles, caching checked elements to avoid repeated calculations
+                if (!modelBtn) {
+                    const checkedStyles = new Set();
+                    for (const el of textNodes) {
+                        let current = el;
+                        for (let i = 0; i < 5; i++) {
+                            if (!current) break;
+
+                            if (!checkedStyles.has(current)) {
+                                checkedStyles.add(current);
+                                if (window.getComputedStyle(current).cursor === 'pointer') {
+                                    modelBtn = current;
+                                    break;
+                                }
+                            }
+
+                            current = current.parentElement;
+                        }
+                        if (modelBtn) break;
+                    }
                 }
             }
 
