@@ -35,7 +35,6 @@ const quickActionChips = document.querySelectorAll('.action-chip');
 let autoRefreshEnabled = true;
 let userIsScrolling = false;
 let userScrollLockUntil = 0; // Timestamp until which we respect user scroll
-let lastScrollPosition = 0;
 let ws = null;
 let idleTimer = null;
 let lastHash = '';
