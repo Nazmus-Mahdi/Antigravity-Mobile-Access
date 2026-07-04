@@ -461,7 +461,6 @@ async function captureSnapshot(cdp) {
 
     for (const ctx of cdp.contexts) {
         try {
-            // console.log(`Trying context ${ctx.id} (${ctx.name || ctx.origin})...`);
             const result = await cdp.call("Runtime.evaluate", {
                 expression: CAPTURE_SCRIPT,
                 returnByValue: true,
@@ -470,16 +469,12 @@ async function captureSnapshot(cdp) {
             });
 
             if (result.exceptionDetails) {
-                // console.log(`Context ${ctx.id} exception:`, result.exceptionDetails);
                 continue;
             }
 
             if (result.result && result.result.value) {
                 const val = result.result.value;
-                if (val.error) {
-                    // console.log(`Context ${ctx.id} script error:`, val.error);
-                    // if (val.debug) console.log(`   Debug info:`, JSON.stringify(val.debug));
-                } else {
+                if (!val.error) {
                     return val;
                 }
             }
