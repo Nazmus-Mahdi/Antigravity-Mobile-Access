@@ -1589,7 +1589,7 @@ function hashString(str) {
 }
 
 // Check if a request is from the same Wi-Fi (internal network)
-function isLocalRequest(req) {
+export function isLocalRequest(req) {
     // 1. Check for proxy headers (Cloudflare, ngrok, etc.)
     // If these exist, the request is coming via an external tunnel/proxy
     if (req.headers['x-forwarded-for'] || req.headers['x-forwarded-host'] || req.headers['x-real-ip']) {
@@ -1607,7 +1607,12 @@ function isLocalRequest(req) {
         ip.startsWith('10.') ||
         ip.startsWith('172.16.') || ip.startsWith('172.17.') ||
         ip.startsWith('172.18.') || ip.startsWith('172.19.') ||
-        ip.startsWith('172.2') || ip.startsWith('172.3') ||
+        ip.startsWith('172.20.') || ip.startsWith('172.21.') ||
+        ip.startsWith('172.22.') || ip.startsWith('172.23.') ||
+        ip.startsWith('172.24.') || ip.startsWith('172.25.') ||
+        ip.startsWith('172.26.') || ip.startsWith('172.27.') ||
+        ip.startsWith('172.28.') || ip.startsWith('172.29.') ||
+        ip.startsWith('172.30.') || ip.startsWith('172.31.') ||
         ip.startsWith('::ffff:192.168.') ||
         ip.startsWith('::ffff:10.');
 }
@@ -2285,4 +2290,6 @@ async function main() {
     }
 }
 
-main();
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    main();
+}
