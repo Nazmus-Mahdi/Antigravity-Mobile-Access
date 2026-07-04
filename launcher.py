@@ -74,7 +74,8 @@ def get_local_ip():
     except Exception:
         IP = '127.0.0.1'
     finally:
-        s.close()
+        if s:
+            s.close()
     return IP
 
 def generate_passcode():
