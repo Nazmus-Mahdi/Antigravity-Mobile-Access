@@ -127,14 +127,12 @@ async function discoverCDP() {
             // Priority 1: Standard Workbench (The main window)
             const workbench = list.find(t => t.url?.includes('workbench.html') || (t.title && t.title.includes('workbench')));
             if (workbench && workbench.webSocketDebuggerUrl) {
-                console.log('Found Workbench target:', workbench.title);
                 return { port, url: workbench.webSocketDebuggerUrl };
             }
 
             // Priority 2: Jetski/Launchpad (Fallback)
             const jetski = list.find(t => t.url?.includes('jetski') || t.title === 'Launchpad');
             if (jetski && jetski.webSocketDebuggerUrl) {
-                console.log('Found Jetski/Launchpad target:', jetski.title);
                 return { port, url: jetski.webSocketDebuggerUrl };
             }
         } catch (e) {
