@@ -1499,7 +1499,7 @@ async function getAppState(cdp) {
         // 1. Get Mode (Fast/Planning)
         // Strategy: Find the clickable mode button which contains either "Fast" or "Planning"
         // It's usually a button or div with cursor:pointer containing the mode text
-        const allEls = Array.from(document.querySelectorAll('*'));
+        const allEls = Array.from(document.querySelectorAll('button, [role="button"], div, span, a'));
 
         // Find elements that are likely mode buttons
         for (const el of allEls) {
