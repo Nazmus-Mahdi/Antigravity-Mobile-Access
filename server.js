@@ -608,11 +608,13 @@ async function setMode(cdp, mode) {
                 // Maybe it's not role=dialog? Look for a popover-like div
                  visibleDialog = Array.from(document.querySelectorAll('div'))
                     .find(d => {
+                        const text = d.textContent;
+                        if (!text || !text.includes('${mode}') || text.includes('Files With Changes')) {
+                            return false;
+                        }
                         const style = window.getComputedStyle(d);
                         return d.offsetHeight > 0 && 
-                               (style.position === 'absolute' || style.position === 'fixed') && 
-                               d.innerText.includes('${mode}') &&
-                               !d.innerText.includes('Files With Changes'); // Anti-context menu
+                               (style.position === 'absolute' || style.position === 'fixed');
                     });
             }
 
@@ -903,11 +905,13 @@ async function setModel(cdp, modelName) {
             if (!visibleDialog) {
                 visibleDialog = Array.from(document.querySelectorAll('div'))
                     .find(d => {
+                        const text = d.textContent;
+                        if (!text || !text.includes('${modelName}') || text.includes('Files With Changes')) {
+                            return false;
+                        }
                         const style = window.getComputedStyle(d);
                         return d.offsetHeight > 0 && 
-                               (style.position === 'absolute' || style.position === 'fixed') && 
-                               d.innerText?.includes('${modelName}') && 
-                               !d.innerText?.includes('Files With Changes');
+                               (style.position === 'absolute' || style.position === 'fixed');
                     });
             }
 
