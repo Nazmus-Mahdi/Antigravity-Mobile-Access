@@ -601,18 +601,26 @@ async function setMode(cdp, mode) {
 
             // 4. Find the dialog
             let visibleDialog = Array.from(document.querySelectorAll('[role="dialog"]'))
-                                    .find(d => d.offsetHeight > 0 && d.innerText.includes('${mode}'));
+                                    .find(d => {
+                                        const text = d.textContent;
+                                        if (!text?.includes('${mode}')) return false;
+                                        const rect = d.getBoundingClientRect();
+                                        return rect.width > 0 && rect.height > 0;
+                                    });
             
             // Fallback: Just look for any new visible container if role=dialog is missing
             if (!visibleDialog) {
                 // Maybe it's not role=dialog? Look for a popover-like div
                  visibleDialog = Array.from(document.querySelectorAll('div'))
                     .find(d => {
+                        const text = d.textContent;
+                        if (!text?.includes('${mode}') || text?.includes('Files With Changes')) return false;
+
+                        const rect = d.getBoundingClientRect();
+                        if (rect.width === 0 || rect.height === 0) return false;
+
                         const style = window.getComputedStyle(d);
-                        return d.offsetHeight > 0 && 
-                               (style.position === 'absolute' || style.position === 'fixed') && 
-                               d.innerText.includes('${mode}') &&
-                               !d.innerText.includes('Files With Changes'); // Anti-context menu
+                        return (style.position === 'absolute' || style.position === 'fixed');
                     });
             }
 
@@ -897,27 +905,36 @@ async function setModel(cdp, modelName) {
             
             // Try specific dialog patterns first
             const dialogs = Array.from(document.querySelectorAll('[role="dialog"], [role="listbox"], [role="menu"], [data-radix-popper-content-wrapper]'));
-            visibleDialog = dialogs.find(d => d.offsetHeight > 0 && d.innerText?.includes('${modelName}'));
+            visibleDialog = dialogs.find(d => {
+                const text = d.textContent;
+                if (!text?.includes('${modelName}')) return false;
+                const rect = d.getBoundingClientRect();
+                return rect.width > 0 && rect.height > 0;
+            });
             
             // Fallback: look for positioned divs
             if (!visibleDialog) {
                 visibleDialog = Array.from(document.querySelectorAll('div'))
                     .find(d => {
+                        const text = d.textContent;
+                        if (!text?.includes('${modelName}') || text?.includes('Files With Changes')) return false;
+
+                        const rect = d.getBoundingClientRect();
+                        if (rect.width === 0 || rect.height === 0) return false;
+
                         const style = window.getComputedStyle(d);
-                        return d.offsetHeight > 0 && 
-                               (style.position === 'absolute' || style.position === 'fixed') && 
-                               d.innerText?.includes('${modelName}') && 
-                               !d.innerText?.includes('Files With Changes');
+                        return (style.position === 'absolute' || style.position === 'fixed');
                     });
             }
 
             if (!visibleDialog) {
                 // Blind search across entire document as last resort
                 const allElements = Array.from(document.querySelectorAll('[role="menuitem"], [role="option"]'));
-                const target = allElements.find(el => 
-                    el.offsetParent !== null && 
-                    (el.innerText?.trim() === '${modelName}' || el.innerText?.includes('${modelName}'))
-                );
+                const target = allElements.find(el => {
+                    const text = el.textContent;
+                    if (text?.trim() !== '${modelName}' && !text?.includes('${modelName}')) return false;
+                    return el.offsetParent !== null;
+                });
                 if (target) {
                     target.click();
                     return { success: true, method: 'blind_search' };
