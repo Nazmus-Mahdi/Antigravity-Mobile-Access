@@ -2285,4 +2285,10 @@ async function main() {
     }
 }
 
-main();
+// Export for testing
+export const __test__ = { getJson };
+
+// Run main if this file is executed directly
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    main();
+}
