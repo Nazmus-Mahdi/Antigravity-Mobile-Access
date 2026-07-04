@@ -47,3 +47,6 @@ include/
 lib/
 lib64/
 share/
+__pycache__/
+*.pyc
+.pytest_cache/
