@@ -1124,18 +1124,23 @@ async function getChatHistory(cdp) {
             if (startElement) {
                 // Walk up to find the panel container
                 let container = startElement;
+                const ancestors = [];
                 for (let i = 0; i < 15; i++) { 
                     if (!container.parentElement) break;
                     container = container.parentElement;
-                    const rect = container.getBoundingClientRect();
+                    ancestors.push(container);
+                }
+
+                for (const el of ancestors) {
+                    const rect = el.getBoundingClientRect();
                     
                     // Panel should have good dimensions
                     // Relaxed constraints for mobile
                     if (rect.width > 50 && rect.height > 100) {
-                        panel = container;
+                        panel = el;
                         
                         // If it looks like a modal/popover (fixed or absolute pos), that's definitely it
-                        const style = window.getComputedStyle(container);
+                        const style = window.getComputedStyle(el);
                         if (style.position === 'fixed' || style.position === 'absolute' || style.zIndex > 10) {
                             break;
                         }
@@ -1304,18 +1309,23 @@ async function selectChat(cdp, chatTitle) {
                 const anchor = searchInput || anchorSpan;
                 if (anchor) {
                     let container = anchor;
+                    const ancestors = [];
                     for (let j = 0; j < 15; j++) {
                         if (!container) break;
-                        const rect = container.getBoundingClientRect();
+                        ancestors.push(container);
+                        container = container.parentElement;
+                    }
+
+                    for (const el of ancestors) {
+                        const rect = el.getBoundingClientRect();
                         if (rect.width > 50 && rect.height > 100) {
-                            const style = window.getComputedStyle(container);
+                            const style = window.getComputedStyle(el);
                             if (style.position === 'fixed' || style.position === 'absolute' || style.zIndex > 10) {
-                                panel = container;
+                                panel = el;
                                 panelFound = true;
                                 break;
                             }
                         }
-                        container = container.parentElement;
                     }
                 }
                 if (panelFound) break;
