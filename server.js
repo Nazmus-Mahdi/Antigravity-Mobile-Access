@@ -1935,8 +1935,9 @@ async function createServer() {
         // Helper to pierce Shadow DOM
         function findAllElements(selector, root = document) {
             let results = Array.from(root.querySelectorAll(selector));
-            const elements = root.querySelectorAll('*');
-            for (const el of elements) {
+            const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT);
+            let el;
+            while(el = walker.nextNode()) {
                 try {
                     if (el.shadowRoot) {
                         results = results.concat(Array.from(el.shadowRoot.querySelectorAll(selector)));
