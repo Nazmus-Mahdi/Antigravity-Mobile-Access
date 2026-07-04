@@ -563,13 +563,16 @@ async function setMode(cdp, mode) {
             // It might not be a <button>, could be a <div> with cursor-pointer.
             
             // 1. Get all elements with text 'Fast' or 'Planning'
-            const allEls = Array.from(document.querySelectorAll('*'));
-            const candidates = allEls.filter(el => {
-                // Must have single text node child to avoid parents
-                if (el.children.length > 0) return false;
-                const txt = el.textContent.trim();
-                return txt === 'Fast' || txt === 'Planning';
-            });
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT, null, false);
+            const candidates = [];
+            let node;
+            while ((node = walker.nextNode())) {
+                if (node.children.length > 0) continue;
+                const txt = node.textContent.trim();
+                if (txt === 'Fast' || txt === 'Planning') {
+                    candidates.push(node);
+                }
+            }
 
             // 2. Find the one that looks interactive (cursor-pointer)
             // Traverse up from text node to find clickable container
@@ -865,12 +868,16 @@ async function setModel(cdp, modelName) {
             
             // Strategy 3: Traverse from text nodes up to clickable parents
             if (!modelBtn) {
-                const allEls = Array.from(document.querySelectorAll('*'));
-                const textNodes = allEls.filter(el => {
-                    if (el.children.length > 0) return false;
-                    const txt = el.textContent;
-                    return KNOWN_KEYWORDS.some(k => txt.includes(k));
-                });
+                const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT, null, false);
+                const textNodes = [];
+                let node;
+                while ((node = walker.nextNode())) {
+                    if (node.children.length > 0) continue;
+                    const txt = node.textContent;
+                    if (KNOWN_KEYWORDS.some(k => txt.includes(k))) {
+                        textNodes.push(node);
+                    }
+                }
 
                 for (const el of textNodes) {
                     let current = el;
@@ -1499,16 +1506,22 @@ async function getAppState(cdp) {
         // 1. Get Mode (Fast/Planning)
         // Strategy: Find the clickable mode button which contains either "Fast" or "Planning"
         // It's usually a button or div with cursor:pointer containing the mode text
-        const allEls = Array.from(document.querySelectorAll('*'));
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT, null, false);
+        const textNodes = [];
+        let node;
 
         // Find elements that are likely mode buttons
-        for (const el of allEls) {
-            if (el.children.length > 0) continue;
-            const text = (el.innerText || '').trim();
+        while ((node = walker.nextNode())) {
+            if (node.children.length > 0) continue;
+            textNodes.push(node);
+
+            if (state.mode !== 'Unknown') break; // Already found clickable mode
+
+            const text = (node.innerText || '').trim();
             if (text !== 'Fast' && text !== 'Planning') continue;
 
             // Check if this or a parent is clickable (the actual mode selector)
-            let current = el;
+            let current = node;
             for (let i = 0; i < 5; i++) {
                 if (!current) break;
                 const style = window.getComputedStyle(current);
@@ -1518,14 +1531,14 @@ async function getAppState(cdp) {
                 }
                 current = current.parentElement;
             }
-            if (state.mode !== 'Unknown') break;
+            if (state.mode !== 'Unknown') break; // Early exit on match
         }
 
         // Fallback: Just look for visible text
         if (state.mode === 'Unknown') {
-            const textNodes = allEls.filter(el => el.children.length === 0 && el.innerText);
-            if (textNodes.some(el => el.innerText.trim() === 'Planning')) state.mode = 'Planning';
-            else if (textNodes.some(el => el.innerText.trim() === 'Fast')) state.mode = 'Fast';
+            const validTextNodes = textNodes.filter(el => el.innerText);
+            if (validTextNodes.some(el => el.innerText.trim() === 'Planning')) state.mode = 'Planning';
+            else if (validTextNodes.some(el => el.innerText.trim() === 'Fast')) state.mode = 'Fast';
         }
 
         // 2. Get Model
