@@ -854,12 +854,17 @@ async function setModel(cdp, modelName) {
 
                 // Find the best one (has chevron icon or cursor pointer)
                 modelBtn = candidates.find(el => {
-                    const style = window.getComputedStyle(el);
                     const hasSvg = el.querySelector('svg.lucide-chevron-up') || 
                                    el.querySelector('svg.lucide-chevron-down') || 
                                    el.querySelector('svg[class*="chevron"]') ||
                                    el.querySelector('svg');
-                    return (style.cursor === 'pointer' || el.tagName === 'BUTTON') && hasSvg;
+
+                    if (!hasSvg) return false;
+                    if (el.tagName === 'BUTTON') return true;
+                    if (el.style && el.style.cursor === 'pointer') return true;
+
+                    const style = window.getComputedStyle(el);
+                    return style.cursor === 'pointer';
                 }) || candidates[0];
             }
             
@@ -876,7 +881,7 @@ async function setModel(cdp, modelName) {
                     let current = el;
                     for (let i = 0; i < 5; i++) {
                         if (!current) break;
-                        if (current.tagName === 'BUTTON' || window.getComputedStyle(current).cursor === 'pointer') {
+                        if (current.tagName === 'BUTTON' || (current.style && current.style.cursor === 'pointer') || window.getComputedStyle(current).cursor === 'pointer') {
                             modelBtn = current;
                             break;
                         }
