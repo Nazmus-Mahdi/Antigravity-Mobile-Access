@@ -313,7 +313,7 @@ async function captureSnapshot(cdp) {
             const allElements = clone.querySelectorAll('*');
             allElements.forEach(el => {
                 try {
-                    const text = (el.innerText || '').toLowerCase();
+                    const text = (el.textContent || '').toLowerCase();
                     const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
                     const isInputPlaceholder = text.includes('ask anything') || 
                                               text.includes('to mention') || 
