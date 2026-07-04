@@ -150,7 +150,6 @@ function connectWebSocket() {
     ws = new WebSocket(`${protocol}//${window.location.host}`);
 
     ws.onopen = () => {
-        console.log('WS Connected');
         updateStatus(true);
         loadSnapshot();
     };
@@ -167,7 +166,6 @@ function connectWebSocket() {
     };
 
     ws.onclose = () => {
-        console.log('WS Disconnected');
         updateStatus(false);
         setTimeout(connectWebSocket, 2000);
     };
