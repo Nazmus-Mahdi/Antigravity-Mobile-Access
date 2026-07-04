@@ -91,6 +91,12 @@ def print_qr(url):
     # invert=True is often needed for dark terminals (white blocks on black bg)
     qr.print_ascii(invert=True)
 
+def get_protocol():
+    """Detects if HTTPS should be used based on certificate files."""
+    if os.path.exists('certs/server.key') and os.path.exists('certs/server.cert'):
+        return "https"
+    return "http"
+
 # -----------------------------------------------------------------------------
 # Main Execution
 # -----------------------------------------------------------------------------
@@ -162,9 +168,7 @@ def main():
             port = os.environ.get('PORT', '3000')
             
             # Detect HTTPS
-            protocol = "http"
-            if os.path.exists('certs/server.key') and os.path.exists('certs/server.cert'):
-                protocol = "https"
+            protocol = get_protocol()
             
             final_url = f"{protocol}://{ip}:{port}"
             
@@ -188,9 +192,7 @@ def main():
             port = os.environ.get('PORT', '3000')
             
             # Detect HTTPS
-            protocol = "http"
-            if os.path.exists('certs/server.key') and os.path.exists('certs/server.cert'):
-                protocol = "https"
+            protocol = get_protocol()
                 
             addr = f"{protocol}://localhost:{port}"
             public_url = ""
