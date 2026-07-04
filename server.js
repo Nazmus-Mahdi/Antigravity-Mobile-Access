@@ -563,13 +563,18 @@ async function setMode(cdp, mode) {
             // It might not be a <button>, could be a <div> with cursor-pointer.
             
             // 1. Get all elements with text 'Fast' or 'Planning'
-            const allEls = Array.from(document.querySelectorAll('*'));
-            const candidates = allEls.filter(el => {
-                // Must have single text node child to avoid parents
-                if (el.children.length > 0) return false;
-                const txt = el.textContent.trim();
-                return txt === 'Fast' || txt === 'Planning';
-            });
+            const candidates = [];
+            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+            let node;
+            while ((node = walker.nextNode())) {
+                const txt = node.nodeValue.trim();
+                if (txt === 'Fast' || txt === 'Planning') {
+                    // Must have single text node child to avoid parents
+                    if (node.parentElement && node.parentElement.children.length === 0) {
+                        candidates.push(node.parentElement);
+                    }
+                }
+            }
 
             // 2. Find the one that looks interactive (cursor-pointer)
             // Traverse up from text node to find clickable container
