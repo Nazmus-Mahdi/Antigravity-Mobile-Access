@@ -580,8 +580,7 @@ async function setMode(cdp, mode) {
                 // Go up max 4 levels
                 for (let i = 0; i < 4; i++) {
                     if (!current) break;
-                    const style = window.getComputedStyle(current);
-                    if (style.cursor === 'pointer' || current.tagName === 'BUTTON') {
+                    if (current.tagName === 'BUTTON' || window.getComputedStyle(current).cursor === 'pointer') {
                         modeBtn = current;
                         break;
                     }
@@ -854,12 +853,11 @@ async function setModel(cdp, modelName) {
 
                 // Find the best one (has chevron icon or cursor pointer)
                 modelBtn = candidates.find(el => {
-                    const style = window.getComputedStyle(el);
                     const hasSvg = el.querySelector('svg.lucide-chevron-up') || 
                                    el.querySelector('svg.lucide-chevron-down') || 
                                    el.querySelector('svg[class*="chevron"]') ||
                                    el.querySelector('svg');
-                    return (style.cursor === 'pointer' || el.tagName === 'BUTTON') && hasSvg;
+                    return (el.tagName === 'BUTTON' || window.getComputedStyle(el).cursor === 'pointer') && hasSvg;
                 }) || candidates[0];
             }
             
@@ -1371,8 +1369,7 @@ async function selectChat(cdp, chatTitle) {
 
                 for (let i = 0; i < 5; i++) {
                     if (!clickable) break;
-                    const style = window.getComputedStyle(clickable);
-                    if (style.cursor === 'pointer' || clickable.tagName === 'BUTTON' || clickable.onclick) {
+                    if (clickable.tagName === 'BUTTON' || clickable.onclick || window.getComputedStyle(clickable).cursor === 'pointer') {
                         foundClickable = true;
                         break;
                     }
@@ -1511,8 +1508,7 @@ async function getAppState(cdp) {
             let current = el;
             for (let i = 0; i < 5; i++) {
                 if (!current) break;
-                const style = window.getComputedStyle(current);
-                if (style.cursor === 'pointer' || current.tagName === 'BUTTON') {
+                if (current.tagName === 'BUTTON' || window.getComputedStyle(current).cursor === 'pointer') {
                     state.mode = text;
                     break;
                 }
