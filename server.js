@@ -13,6 +13,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { inspectUI } from './ui_inspector.js';
 import { execSync } from 'child_process';
+import { hashString } from './utils.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -1575,17 +1576,6 @@ async function getAppState(cdp) {
         } catch (e) { }
     }
     return { error: 'Context failed' };
-}
-
-// Simple hash function
-function hashString(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash = hash & hash;
-    }
-    return hash.toString(36);
 }
 
 // Check if a request is from the same Wi-Fi (internal network)
