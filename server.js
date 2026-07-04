@@ -1127,11 +1127,10 @@ async function getChatHistory(cdp) {
                 for (let i = 0; i < 15; i++) { 
                     if (!container.parentElement) break;
                     container = container.parentElement;
-                    const rect = container.getBoundingClientRect();
                     
                     // Panel should have good dimensions
                     // Relaxed constraints for mobile
-                    if (rect.width > 50 && rect.height > 100) {
+                    if (container.offsetWidth > 50 && container.offsetHeight > 100) {
                         panel = container;
                         
                         // If it looks like a modal/popover (fixed or absolute pos), that's definitely it
@@ -1306,8 +1305,7 @@ async function selectChat(cdp, chatTitle) {
                     let container = anchor;
                     for (let j = 0; j < 15; j++) {
                         if (!container) break;
-                        const rect = container.getBoundingClientRect();
-                        if (rect.width > 50 && rect.height > 100) {
+                        if (container.offsetWidth > 50 && container.offsetHeight > 100) {
                             const style = window.getComputedStyle(container);
                             if (style.position === 'fixed' || style.position === 'absolute' || style.zIndex > 10) {
                                 panel = container;
@@ -1407,7 +1405,7 @@ async function selectChat(cdp, chatTitle) {
 
             // 5. Verify/retry if panel still open
             await new Promise(r => setTimeout(r, 1500));
-            const isPanelStillOpen = panel.offsetParent !== null && panel.style.display !== 'none' && panel.getBoundingClientRect().height > 0;
+            const isPanelStillOpen = panel.offsetParent !== null && panel.style.display !== 'none' && panel.offsetHeight > 0;
 
             if (isPanelStillOpen && candidates.length > 1) {
                 log('Panel still open, retrying with candidate 1: "' + candidates[1].text + '"');
