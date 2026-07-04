@@ -544,7 +544,6 @@ async function copyToClipboard(text) {
     if (navigator.clipboard && window.isSecureContext) {
         try {
             await navigator.clipboard.writeText(text);
-            console.log('[COPY] Success via Clipboard API');
             return true;
         } catch (err) {
             console.warn('[COPY] Clipboard API failed:', err);
@@ -587,7 +586,6 @@ async function copyToClipboard(text) {
         document.body.removeChild(textArea);
 
         if (success) {
-            console.log('[COPY] Success via execCommand fallback');
             return true;
         }
     } catch (err) {
