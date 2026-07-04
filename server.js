@@ -601,18 +601,23 @@ async function setMode(cdp, mode) {
 
             // 4. Find the dialog
             let visibleDialog = Array.from(document.querySelectorAll('[role="dialog"]'))
-                                    .find(d => d.offsetHeight > 0 && d.innerText.includes('${mode}'));
+                                    .find(d => {
+                                        const text = d.textContent;
+                                        if (!text || !text.includes('${mode}')) return false;
+                                        return d.offsetHeight > 0;
+                                    });
             
             // Fallback: Just look for any new visible container if role=dialog is missing
             if (!visibleDialog) {
                 // Maybe it's not role=dialog? Look for a popover-like div
                  visibleDialog = Array.from(document.querySelectorAll('div'))
                     .find(d => {
+                        const text = d.textContent;
+                        if (!text || !text.includes('${mode}') || text.includes('Files With Changes')) return false;
+
                         const style = window.getComputedStyle(d);
-                        return d.offsetHeight > 0 && 
-                               (style.position === 'absolute' || style.position === 'fixed') && 
-                               d.innerText.includes('${mode}') &&
-                               !d.innerText.includes('Files With Changes'); // Anti-context menu
+                        return (style.position === 'absolute' || style.position === 'fixed') &&
+                               d.offsetHeight > 0;
                     });
             }
 
@@ -897,17 +902,22 @@ async function setModel(cdp, modelName) {
             
             // Try specific dialog patterns first
             const dialogs = Array.from(document.querySelectorAll('[role="dialog"], [role="listbox"], [role="menu"], [data-radix-popper-content-wrapper]'));
-            visibleDialog = dialogs.find(d => d.offsetHeight > 0 && d.innerText?.includes('${modelName}'));
+            visibleDialog = dialogs.find(d => {
+                const text = d.textContent;
+                if (!text || !text.includes('${modelName}')) return false;
+                return d.offsetHeight > 0;
+            });
             
             // Fallback: look for positioned divs
             if (!visibleDialog) {
                 visibleDialog = Array.from(document.querySelectorAll('div'))
                     .find(d => {
+                        const text = d.textContent;
+                        if (!text || !text.includes('${modelName}') || text.includes('Files With Changes')) return false;
+
                         const style = window.getComputedStyle(d);
-                        return d.offsetHeight > 0 && 
-                               (style.position === 'absolute' || style.position === 'fixed') && 
-                               d.innerText?.includes('${modelName}') && 
-                               !d.innerText?.includes('Files With Changes');
+                        return (style.position === 'absolute' || style.position === 'fixed') &&
+                               d.offsetHeight > 0;
                     });
             }
 
