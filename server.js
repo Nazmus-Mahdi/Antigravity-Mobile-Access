@@ -310,8 +310,26 @@ async function captureSnapshot(cdp) {
             });
 
             // 2. Text-based cleanup for stray status bars and redundant desktop inputs
-            const allElements = clone.querySelectorAll('*');
-            allElements.forEach(el => {
+            // Optimize by selecting specific input elements and text nodes instead of querying '*' and accessing innerText on all elements
+            const targetSelectors = 'input, textarea, [placeholder], [contenteditable="true"], [role="textbox"], [data-lexical-editor]';
+            const elementsToCheck = new Set(clone.querySelectorAll(targetSelectors));
+
+            // Fast text node traversal for specific strings instead of querying all elements
+            // Note: Since this executes via string serialization in evaluate, NodeFilter is available globally,
+            // but just to be safe if this were run differently, we use the integer 4 for NodeFilter.SHOW_TEXT
+            const walker = clone.ownerDocument.createTreeWalker(clone, 4, null, false);
+            let node;
+            while ((node = walker.nextNode())) {
+                const text = node.nodeValue.toLowerCase();
+                if (text.includes('ask anything') || text.includes('to mention')) {
+                    // Prevent adding the root clone element itself to the removal list
+                    if (node.parentElement && node.parentElement !== clone) {
+                        elementsToCheck.add(node.parentElement);
+                    }
+                }
+            }
+
+            elementsToCheck.forEach(el => {
                 try {
                     const text = (el.innerText || '').toLowerCase();
                     const placeholder = (el.getAttribute('placeholder') || '').toLowerCase();
