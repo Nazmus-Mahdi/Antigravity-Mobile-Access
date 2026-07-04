@@ -613,7 +613,6 @@ async function sendMessage() {
     if (!message) return;
 
     // Optimistic UI updates
-    const previousValue = messageInput.value;
     messageInput.value = ''; // Clear immediately
     messageInput.style.height = 'auto'; // Reset height
     messageInput.blur(); // Close keyboard on mobile immediately
