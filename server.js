@@ -601,18 +601,17 @@ async function setMode(cdp, mode) {
 
             // 4. Find the dialog
             let visibleDialog = Array.from(document.querySelectorAll('[role="dialog"]'))
-                                    .find(d => d.offsetHeight > 0 && d.innerText.includes('${mode}'));
+                                    .find(d => d.textContent?.includes('${mode}') && d.offsetHeight > 0);
             
             // Fallback: Just look for any new visible container if role=dialog is missing
             if (!visibleDialog) {
                 // Maybe it's not role=dialog? Look for a popover-like div
                  visibleDialog = Array.from(document.querySelectorAll('div'))
                     .find(d => {
+                        if (!d.textContent?.includes('${mode}') || d.textContent?.includes('Files With Changes')) return false; // Anti-context menu
                         const style = window.getComputedStyle(d);
                         return d.offsetHeight > 0 && 
-                               (style.position === 'absolute' || style.position === 'fixed') && 
-                               d.innerText.includes('${mode}') &&
-                               !d.innerText.includes('Files With Changes'); // Anti-context menu
+                               (style.position === 'absolute' || style.position === 'fixed');
                     });
             }
 
@@ -897,27 +896,26 @@ async function setModel(cdp, modelName) {
             
             // Try specific dialog patterns first
             const dialogs = Array.from(document.querySelectorAll('[role="dialog"], [role="listbox"], [role="menu"], [data-radix-popper-content-wrapper]'));
-            visibleDialog = dialogs.find(d => d.offsetHeight > 0 && d.innerText?.includes('${modelName}'));
+            visibleDialog = dialogs.find(d => d.textContent?.includes('${modelName}') && d.offsetHeight > 0);
             
             // Fallback: look for positioned divs
             if (!visibleDialog) {
                 visibleDialog = Array.from(document.querySelectorAll('div'))
                     .find(d => {
+                        if (!d.textContent?.includes('${modelName}') || d.textContent?.includes('Files With Changes')) return false;
                         const style = window.getComputedStyle(d);
                         return d.offsetHeight > 0 && 
-                               (style.position === 'absolute' || style.position === 'fixed') && 
-                               d.innerText?.includes('${modelName}') && 
-                               !d.innerText?.includes('Files With Changes');
+                               (style.position === 'absolute' || style.position === 'fixed');
                     });
             }
 
             if (!visibleDialog) {
                 // Blind search across entire document as last resort
                 const allElements = Array.from(document.querySelectorAll('[role="menuitem"], [role="option"]'));
-                const target = allElements.find(el => 
-                    el.offsetParent !== null && 
-                    (el.innerText?.trim() === '${modelName}' || el.innerText?.includes('${modelName}'))
-                );
+                const target = allElements.find(el => {
+                    const text = el.textContent?.trim();
+                    return (text === '${modelName}' || text?.includes('${modelName}')) && el.offsetParent !== null;
+                });
                 if (target) {
                     target.click();
                     return { success: true, method: 'blind_search' };
