@@ -231,15 +231,23 @@ async function captureSnapshot(cdp) {
         
         // Mark fixed/absolute elements in the original DOM before cloning
         // This is the only way to reliably catch CSS-class-based positioning
-        const candidates = cascade.querySelectorAll('*');
-        candidates.forEach(el => {
+        const candidates = [];
+        const tw = document.createTreeWalker(cascade, NodeFilter.SHOW_ELEMENT);
+        let node;
+        while(node = tw.nextNode()) {
+            // Optimization: Skip expensive getComputedStyle for empty SPAN elements,
+            // which are heavily used for text syntax highlighting and are virtually never positioned.
+            if (node.tagName === 'SPAN' && node.children.length === 0) {
+                continue;
+            }
             try {
-                const pos = window.getComputedStyle(el).position;
+                const pos = window.getComputedStyle(node).position;
                 if (pos === 'fixed' || pos === 'absolute') {
-                    el.setAttribute('data-ag-rem', 'true');
+                    node.setAttribute('data-ag-rem', 'true');
+                    candidates.push(node);
                 }
             } catch(e) {}
-        });
+        }
 
         // Clone cascade to modify it without affecting the original
         const clone = cascade.cloneNode(true);
