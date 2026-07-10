@@ -4,6 +4,7 @@
     "type": "module",
     "description": "Mobile web interface for monitoring Antigravity chat via visual snapshots",
     "scripts": {
+        "test": "node --test tests/*.test.js",
         "start": "node server.js",
         "dev": "node server.js"
     },
