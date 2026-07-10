@@ -171,6 +171,10 @@ function connectWebSocket() {
         updateStatus(false);
         setTimeout(connectWebSocket, 2000);
     };
+
+    ws.onerror = (error) => {
+        console.error('WS Error:', error);
+    };
 }
 
 function updateStatus(connected) {
