@@ -356,7 +356,7 @@ async function captureSnapshot(cdp) {
                     // CRITICAL FIX: The permission prompt has a textbox for "Run this instead". 
                     // Do NOT delete the permission prompt!
                     const branchText = (branch.innerText || '').toLowerCase();
-                    if (branchText.includes('allow this time') || branchText.includes('allow permissions')) {
+                    if (branchText.includes('allow this time') || branchText.includes('allow permissions') || (branchText.includes('allow') && branchText.includes('deny'))) {
                         return; // SKIP! Do not delete!
                     }
 
@@ -701,6 +701,17 @@ async function clickElement(cdp, { selector, index, textContent, text, isExactPa
             if (${isExactPath ? 'true' : 'false'}) {
                 try {
                     target = root.querySelector('${selector}');
+                    // Optional extra safety: if exact path found something, optionally check if it matches text content expected,
+                    // otherwise maybe the DOM shifted? Let's check text if filterText is provided.
+                    const filterText = ${safeText};
+                    if (target && filterText) {
+                        const txt = (target.innerText || target.textContent || '').trim();
+                        const firstLine = txt.split('\\n')[0].trim();
+                        // Only discard if it's a completely different text. If the element is an input or has no text, skip verification
+                        if (txt.length > 0 && !(firstLine === filterText || txt.includes(filterText))) {
+                            target = null; // Revert to fallback search
+                        }
+                    }
                 } catch(e) {
                     // Invalid selector fallback
                 }
